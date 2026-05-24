@@ -10,24 +10,21 @@ const path = require('path');
 const app = express();
 
 const allowedOrigins = [
-    // 'http://localhost:3000',
-    // 'http://127.0.0.1:3000',
-    // 'http://localhost:5173',
-    // 'http://127.0.0.1:5173',
-    'http://vensoeng.vercel.app',
-    'http://vensoeng.free.nf',
+    'https://vensoeng.vercel.app',
+    'https://vensoeng.free.nf',
     process.env.FRONTEND_URL
 ].filter(Boolean);
 
 app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || process.env.NODE_ENV !== 'production') {
-            return callback(null, true);
-        }
+    origin: function (origin, callback) {
+        // allow mobile apps or server-to-server
+        if (!origin) return callback(null, true);
+
         if (allowedOrigins.includes(origin)) {
             return callback(null, true);
         }
-        callback(new Error('Unauthorized host'));
+
+        return callback(new Error('CORS blocked: ' + origin));
     },
     credentials: true
 }));
