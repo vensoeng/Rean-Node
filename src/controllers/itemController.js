@@ -52,10 +52,8 @@ exports.createItem = async (req, res) => {
 
 exports.getAllItems = async (req, res) => {
   try {
-    // ២.១ អាននូវឯកសារ JSON ពី GitHub
     const items = await readJsonFile(ITEMS_FILE_PATH, []);
 
-    // ២.២ ផ្ញើលក្ខណៈនៃ HTTP 200 = មិនមានបញ្ហា
     res.status(200).json({
       message: "ទទួលបាននូវ Items ដោយជោគជ័យ",
       total: items.length,

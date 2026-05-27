@@ -16,117 +16,116 @@ const makeImageName = (ext) => {
   return `${Date.now()}${ext}`;
 };
 
-// REGISTER
-exports.register = async (req, res) => {
 
-  try {
+// exports.register = async (req, res) => {
 
-    const { email, password } = req.body;
+//   try {
 
-    // validation
-    if (!email || !password) {
-      return res.status(400).json({
-        message: "email and password required"
-      });
-    }
+//     const { email, password } = req.body;
 
-    const users = await readJsonFile(USERS_FILE_PATH, []);
+//     // validation
+//     if (!email || !password) {
+//       return res.status(400).json({
+//         message: "email and password required"
+//       });
+//     }
 
-    // check existing user
-    const exist = users.find(
-      u => u.email === email
-    );
+//     const users = await readJsonFile(USERS_FILE_PATH, []);
 
-    if (exist) {
-      return res.status(400).json({
-        message: "User already exists"
-      });
-    }
+//     // check existing user
+//     const exist = users.find(
+//       u => u.email === email
+//     );
 
-    const { username, firstName, lastName, bio, gender, birthday, role = 2 } = req.body;
+//     if (exist) {
+//       return res.status(400).json({
+//         message: "User already exists"
+//       });
+//     }
 
-    // hash password
-    const hash = await bcrypt.hash(password, 10);
+//     const { username, firstName, lastName, bio, gender, birthday, role = 2 } = req.body;
 
-    let imageName = null;
-    if (req.file?.buffer) {
-      const processed = await compressToTargetSize(req.file.buffer, req.file.mimetype);
-      imageName = makeImageName(processed.extension);
-      const githubImagePath = `${UPLOADS_DIR}/${imageName}`;
-      await uploadBufferFile(githubImagePath, processed.buffer, `uploads: create ${imageName}`);
-    }
+//     // hash password
+//     const hash = await bcrypt.hash(password, 10);
 
-    // create user
-    const id = Date.now();
-    const newUser = new User(
-      id,
-      username,
-      firstName,
-      lastName,
-      imageName,
-      bio,
-      gender,
-      birthday,
-      email,
-      hash,
-      role
-    );
+//     let imageName = null;
+//     if (req.file?.buffer) {
+//       const processed = await compressToTargetSize(req.file.buffer, req.file.mimetype);
+//       imageName = makeImageName(processed.extension);
+//       const githubImagePath = `${UPLOADS_DIR}/${imageName}`;
+//       await uploadBufferFile(githubImagePath, processed.buffer, `uploads: create ${imageName}`);
+//     }
 
-    // generate access token (short-lived)
-    const accessToken = jwt.sign(
-      {
-        id: newUser.id,
-        email: newUser.email,
-        username: newUser.username,
-        role: newUser.role
-      },
-      SECRET,
-      { expiresIn: "30m" }
-    );
+//     // create user
+//     const id = Date.now();
+//     const newUser = new User(
+//       id,
+//       username,
+//       firstName,
+//       lastName,
+//       imageName,
+//       bio,
+//       gender,
+//       birthday,
+//       email,
+//       hash,
+//       role
+//     );
 
-    // generate refresh token (long-lived)
-    const refreshToken = jwt.sign(
-      {
-        id: newUser.id,
-        email: newUser.email
-      },
-      SECRET,
-      { expiresIn: "7d" }
-    );
+//     // generate access token (short-lived)
+//     const accessToken = jwt.sign(
+//       {
+//         id: newUser.id,
+//         email: newUser.email,
+//         username: newUser.username,
+//         role: newUser.role
+//       },
+//       SECRET,
+//       { expiresIn: "30m" }
+//     );
 
-    // add refresh token to user
-    newUser.refreshToken = refreshToken;
-    users.push(newUser);
-    await writeJsonFile(USERS_FILE_PATH, users, `users: register ${newUser.email}`);
+//     // generate refresh token (long-lived)
+//     const refreshToken = jwt.sign(
+//       {
+//         id: newUser.id,
+//         email: newUser.email
+//       },
+//       SECRET,
+//       { expiresIn: "7d" }
+//     );
 
-    res.status(201).json({
-      message: "User created",
-      accessToken,
-      refreshToken,
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        username: newUser.username,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        pr_img: newUser.pr_img,
-        bio: newUser.bio,
-        gender: newUser.gender,
-        birthday: newUser.birthday,
-        role: newUser.role
-      }
-    });
+//     // add refresh token to user
+//     newUser.refreshToken = refreshToken;
+//     users.push(newUser);
+//     await writeJsonFile(USERS_FILE_PATH, users, `users: register ${newUser.email}`);
 
-  } catch (err) {
+//     res.status(201).json({
+//       message: "User created",
+//       accessToken,
+//       refreshToken,
+//       user: {
+//         id: newUser.id,
+//         email: newUser.email,
+//         username: newUser.username,
+//         firstName: newUser.firstName,
+//         lastName: newUser.lastName,
+//         pr_img: newUser.pr_img,
+//         bio: newUser.bio,
+//         gender: newUser.gender,
+//         birthday: newUser.birthday,
+//         role: newUser.role
+//       }
+//     });
 
-    res.status(500).json({
-      message: "Server error"
-    });
+//   } catch (err) {
 
-  }
-};
+//     res.status(500).json({
+//       message: "Server error"
+//     });
 
-// LOGIN
+//   }
+// };
+
 exports.login = async (req, res) => {
 
   try {
@@ -244,7 +243,6 @@ exports.dashboard = (req, res) => {
   }
 };
 
-// REFRESH TOKEN
 exports.refreshToken = async (req, res) => {
   try {
     const { refreshToken } = req.body;
@@ -304,7 +302,6 @@ exports.refreshToken = async (req, res) => {
   }
 };
 
-// LOGOUT
 exports.logout = async (req, res) => {
   try {
     const userId = req.user.id;

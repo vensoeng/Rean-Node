@@ -4,7 +4,7 @@ const authMiddleware = require("../middlewares/authMiddleware");
 const adminMiddleware = require("../middlewares/adminMiddleware");
 const uploadMiddleware = require("../middlewares/uploadMiddleware");
 
-router.post("/register", uploadMiddleware.single("pr_img"), auth.register);
+// router.post("/register", uploadMiddleware.single("pr_img"), auth.register);
 router.post("/login", auth.login);
 router.post("/refresh", auth.refreshToken);
 router.post("/logout", authMiddleware, auth.logout);
