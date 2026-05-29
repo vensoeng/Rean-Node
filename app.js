@@ -19,6 +19,20 @@ const allowedOrigins = [
     process.env.FRONTEND_URL
 ].filter(Boolean);
 
+// app.use(cors({
+//     origin: function (origin, callback) {
+//         // allow mobile apps or server-to-server
+//         if (!origin) return callback(null, true);
+
+//         if (allowedOrigins.includes(origin)) {
+//             return callback(null, true);
+//         }
+
+//         return callback(new Error('CORS blocked: ' + origin));
+//     },
+//     credentials: true
+// }));
+
 app.use(cors({
     origin: function (origin, callback) {
         // allow mobile apps or server-to-server
@@ -30,7 +44,9 @@ app.use(cors({
 
         return callback(new Error('CORS blocked: ' + origin));
     },
-    credentials: true
+    credentials: true,
+    // 👇 ADDED THIS LINE: Crucial to stop iPhone/Safari from throwing CORS errors
+    allowedHeaders: ['Content-Type', 'Authorization', 'User-Agent', 'X-Requested-With']
 }));
 
 app.use(express.json());
@@ -57,3 +73,5 @@ const startServer = async () => {
 }
 
 startServer();
+
+module.exports = app;
