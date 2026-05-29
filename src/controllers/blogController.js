@@ -147,13 +147,30 @@ exports.updateBlog = async (req, res) => {
   }
 };
 
+// exports.getAllBlogs = async (req, res) => {
+//   try {
+//     const blogs = await readJsonFile(BLOGS_FILE_PATH, []);
+//     res.json(blogs);
+//   } catch (err) {
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
 exports.getAllBlogs = async (req, res) => {
   try {
     const blogs = await readJsonFile(BLOGS_FILE_PATH, []);
+    const limit = parseInt(req.query.limit);
+    if (!isNaN(limit)) {
+
+      return res.json(blogs.slice(0, limit));
+
+    }
     res.json(blogs);
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({
+      message: "Server error"
+    });
   }
+
 };
 
 exports.getBlogById = async (req, res) => {
