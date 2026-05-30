@@ -160,9 +160,7 @@ exports.getAllBlogs = async (req, res) => {
     const blogs = await readJsonFile(BLOGS_FILE_PATH, []);
     const limit = parseInt(req.query.limit);
     if (!isNaN(limit)) {
-
-      return res.json(blogs.slice(0, limit));
-
+      return res.json(blogs.slice(-limit));
     }
     res.json(blogs);
   } catch (err) {
