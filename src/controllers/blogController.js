@@ -147,14 +147,6 @@ exports.updateBlog = async (req, res) => {
   }
 };
 
-// exports.getAllBlogs = async (req, res) => {
-//   try {
-//     const blogs = await readJsonFile(BLOGS_FILE_PATH, []);
-//     res.json(blogs);
-//   } catch (err) {
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
 exports.getAllBlogs = async (req, res) => {
   try {
     const blogs = await readJsonFile(BLOGS_FILE_PATH, []);
