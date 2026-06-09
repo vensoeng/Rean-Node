@@ -54,7 +54,7 @@ exports.createBlog = async (req, res) => {
     blogs.push(newBlog);
     await writeJsonFile(BLOGS_FILE_PATH, blogs, `blogs: created ${title}`);
 
-    res.status(201).json({ message: "បង្កើត Blog បានជោគជ័យ", blog: newBlog });
+    res.status(201).json({ message: "បង្កើត Blog បានជោគជ័យ", data: newBlog });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }

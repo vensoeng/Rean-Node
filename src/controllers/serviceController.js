@@ -235,12 +235,12 @@ exports.getAllService = async (req, res) => {
     }
 
     if (status) {
-      const isStatusTrue = status === 'true';
+      const isStatusTrue = status;
       services = services.filter(s => s.status === isStatusTrue);
     }
 
     if (upper) {
-      const isUpperTrue = upper === 'true';
+      const isUpperTrue = upper;
       services = services.filter(s => s.upper === isUpperTrue);
     }
 
