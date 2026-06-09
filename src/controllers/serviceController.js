@@ -6,6 +6,17 @@ const { compressToTargetSize } = require("../config/imageProcessor");
 const SERVICE_FILE_PATH = process.env.SERVICE_FILE_PATH || "data/portfolio/services.json";
 const UPLOADS_DIR = process.env.UPLOADS_DIR || "storage";
 
+const formatBackendDate = (dateInput) => {
+  if (!dateInput) return '-';
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return '-';
+  return d.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
 exports.createService = async (req, res) => {
   try {
     const serviceData = req.body;
@@ -75,7 +86,6 @@ exports.createService = async (req, res) => {
     servicesList.push(newService);
     await writeJsonFile(SERVICE_FILE_PATH, servicesList, `Services: created ${title || 'New Service'}`);
 
-    // 6. Return response
     return res.status(201).json({ 
       success: true,
       message: "បង្កើត Services បានជោគជ័យ", 
@@ -91,14 +101,12 @@ exports.createService = async (req, res) => {
   }
 };
 
-//update 
 exports.updateService = async (req, res) => {
   try {
     const { id } = req.params;
     const serviceData = req.body;
 
     const servicesList = await readJsonFile(SERVICE_FILE_PATH, []);
-
     const serviceIndex = servicesList.findIndex(s => s.id === parseInt(id) || s.id === id);
 
     if (serviceIndex === -1) {
@@ -119,7 +127,7 @@ exports.updateService = async (req, res) => {
         try {
           await deleteFile(`${UPLOADS_DIR}/${oldService.img}`, `uploads: deleted old img ${oldService.img}`);
         } catch (e) {
-          console.log("Error deleting old image:", e.message); // បង្ការកុំឱ្យគាំងប្រព័ន្ធបើរកហ្វាល់ចាស់មិនឃើញ
+          console.log("Error deleting old image:", e.message);
         }
       }
     }
@@ -146,11 +154,10 @@ exports.updateService = async (req, res) => {
       ...serviceData,      
       img: imageName,      
       file: htmlFileName, 
-      updatedAt: new Date() 
+      updated_at: new Date()
     };
 
     servicesList[serviceIndex] = updatedService;
-
     await writeJsonFile(SERVICE_FILE_PATH, servicesList, `Services: updated ${updatedService.title || id}`);
 
     return res.status(200).json({
@@ -168,13 +175,10 @@ exports.updateService = async (req, res) => {
   }
 };
 
-//delete
 exports.deleteService = async (req, res) => {
   try {
     const { id } = req.params;
-
     const servicesList = await readJsonFile(SERVICE_FILE_PATH, []);
-
     const serviceToDelete = servicesList.find(s => s.id === parseInt(id) || s.id === id);
 
     if (!serviceToDelete) {
@@ -198,7 +202,6 @@ exports.deleteService = async (req, res) => {
     }
 
     const filteredServices = servicesList.filter(s => s.id !== serviceToDelete.id);
-
     await writeJsonFile(SERVICE_FILE_PATH, filteredServices, `Services: deleted service with ID ${id}`);
 
     return res.status(200).json({
@@ -214,11 +217,10 @@ exports.deleteService = async (req, res) => {
     });
   }
 };
-//Get All item services
+
 exports.getAllService = async (req, res) => {
   try {
     let services = await readJsonFile(SERVICE_FILE_PATH, []);
-
     const { search, list_id, status, upper, page, limit } = req.query;
 
     if (search) {
@@ -235,18 +237,22 @@ exports.getAllService = async (req, res) => {
     }
 
     if (status) {
-      const isStatusTrue = status;
-      services = services.filter(s => s.status === isStatusTrue);
+      services = services.filter(s => s.status === status);
     }
 
     if (upper) {
-      const isUpperTrue = upper;
-      services = services.filter(s => s.upper === isUpperTrue);
+      services = services.filter(s => s.upper === upper);
     }
 
     services.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    const totalItems = services.length;
+    const formattedServices = services.map(s => ({
+      ...s,
+      created_at: formatBackendDate(s.created_at),
+      updated_at: formatBackendDate(s.updated_at)
+    }));
+
+    const totalItems = formattedServices.length;
 
     if (page || limit) {
       const currentPage = parseInt(page) || 1;
@@ -254,7 +260,7 @@ exports.getAllService = async (req, res) => {
       const startIndex = (currentPage - 1) * pageSize;
       const endIndex = startIndex + pageSize;
 
-      const paginatedData = services.slice(startIndex, endIndex);
+      const paginatedData = formattedServices.slice(startIndex, endIndex);
 
       return res.json({
         success: true,
@@ -271,7 +277,7 @@ exports.getAllService = async (req, res) => {
     return res.json({
       success: true,
       total: totalItems,
-      data: services
+      data: formattedServices
     });
 
   } catch (err) {
@@ -283,21 +289,25 @@ exports.getAllService = async (req, res) => {
   }
 };
 
-//Get by ID
 exports.getAllServiceById = async (req, res) => {
   try {
     const { id } = req.params;
     const services = await readJsonFile(SERVICE_FILE_PATH, []);
-    
     const service = services.find(s => String(s.id) === String(id));
 
     if (!service) {
       return res.status(404).json({ success: false, message: "រកមិនឃើញសេវាកម្មនេះឡើយ" });
     }
+    
+    const formattedService = {
+      ...service,
+      created_at: formatBackendDate(service.created_at),
+      updated_at: formatBackendDate(service.updated_at)
+    };
 
     return res.json({
       success: true,
-      data: service
+      data: formattedService
     });
     
   } catch (err) {

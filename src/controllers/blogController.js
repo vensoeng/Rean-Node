@@ -8,6 +8,17 @@ const UPLOADS_DIR = process.env.UPLOADS_DIR || "storage";
 
 const makeFileName = (ext) => `${Date.now()}${ext}`;
 
+const formatBackendDate = (dateInput) => {
+  if (!dateInput) return '-';
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return '-';
+  return d.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
 exports.createBlog = async (req, res) => {
   try {
     const { status, title, des, detail, main_hastag, hastag } = req.body;
@@ -29,8 +40,6 @@ exports.createBlog = async (req, res) => {
       const blogFile = req.files.file[0];
       const fileExt = path.extname(blogFile.originalname) || ".html";
       htmlFileName = `${Date.now()}${fileExt}`;
-      
-      // Upload file ទៅកាន់ GitHub
       await uploadBufferFile(`${UPLOADS_DIR}/${htmlFileName}`, blogFile.buffer, `uploads: blog file ${htmlFileName}`);
     }
 
@@ -77,7 +86,6 @@ exports.updateBlog = async (req, res) => {
 
     let imageName = currentBlog.img;
     if (req.files?.img?.[0]?.buffer) {
-
       if (currentBlog.img && deleteFile) {
         try {
           const oldImgPath = `${UPLOADS_DIR}/${currentBlog.img}`;
@@ -89,14 +97,12 @@ exports.updateBlog = async (req, res) => {
 
       const imgFile = req.files.img[0];
       const processed = await compressToTargetSize(imgFile.buffer, imgFile.mimetype);
-      imageName = makeFileName(processed.extension); // បង្កើតឈ្មោះជាលក្ខណៈ Timestamp (ឧទាហរណ៍៖ 1779761471541.png)
+      imageName = makeFileName(processed.extension);
       await uploadBufferFile(`${UPLOADS_DIR}/${imageName}`, processed.buffer, `uploads: updated img ${imageName}`);
     }
 
     let htmlFileName = currentBlog.file;
-    
     if (req.files?.file?.[0]?.buffer) {
-
       if (currentBlog.file && deleteFile) {
         try {
           const oldFilePath = `${UPLOADS_DIR}/${currentBlog.file}`;
@@ -110,9 +116,7 @@ exports.updateBlog = async (req, res) => {
       const fileExt = path.extname(blogFile.originalname) || ".html";
       htmlFileName = makeFileName(fileExt);
       await uploadBufferFile(`${UPLOADS_DIR}/${htmlFileName}`, blogFile.buffer, `uploads: updated html file ${htmlFileName}`);
-    } 
-
-    else if (htmlContent) {
+    } else if (htmlContent) {
       if (currentBlog.file && deleteFile) {
         try {
           const oldFilePath = `${UPLOADS_DIR}/${currentBlog.file}`;
@@ -147,20 +151,27 @@ exports.updateBlog = async (req, res) => {
   }
 };
 
+// 🛠️ ផ្នែកទទួលបានការកែសម្រួលដើម្បីបំបាត់ Invalid Date
 exports.getAllBlogs = async (req, res) => {
   try {
-    const blogs = await readJsonFile(BLOGS_FILE_PATH, []);
+    let blogs = await readJsonFile(BLOGS_FILE_PATH, []);
+    
+    blogs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    const formattedBlogs = blogs.map(b => ({
+      ...b,
+      created_at: formatBackendDate(b.created_at),
+      updated_at: formatBackendDate(b.updated_at)
+    }));
+
     const limit = parseInt(req.query.limit);
     if (!isNaN(limit)) {
-      return res.json(blogs.slice(-limit));
+      return res.json(formattedBlogs.slice(0, limit));
     }
-    res.json(blogs);
+    res.json(formattedBlogs);
   } catch (err) {
-    res.status(500).json({
-      message: "Server error"
-    });
+    res.status(500).json({ message: "Server error" });
   }
-
 };
 
 exports.getBlogById = async (req, res) => {
@@ -169,7 +180,15 @@ exports.getBlogById = async (req, res) => {
     const blog = blogs.find(b => b.id === Number(req.params.id));
 
     if (!blog) return res.status(404).json({ message: "Blog not found" });
-    res.json(blog);
+
+    // Format ថ្ងៃខែសម្រាប់ទិន្នន័យ একক (Single Object)
+    const formattedBlog = {
+      ...blog,
+      created_at: formatBackendDate(blog.created_at),
+      updated_at: formatBackendDate(blog.updated_at)
+    };
+
+    res.json(formattedBlog);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
