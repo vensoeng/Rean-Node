@@ -53,7 +53,9 @@ app.use(express.json());
 app.use("/auth", require('./src/routes/auth'));
 app.use("/blogs", require('./src/routes/blog'));
 app.use("/services", require('./src/routes/service'));
+app.use("/designs", require('./src/routes/designs'));
 app.use("/images", require('./src/routes/images'));
+app.use("/storage", require('./src/routes/storage'));
 // app.use("/items", require('./src/routes/item'));
 // នៅក្នុង server.js ឬ app.js របស់អ្នក
 
