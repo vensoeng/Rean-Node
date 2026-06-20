@@ -162,10 +162,88 @@ exports.deleteDesign = async (req, res) => {
   }
 };
 
+// exports.getAllDesign = async (req, res) => {
+//   try {
+//     let designs = await readJsonFile(DESIGNS_FILE_PATH, []);
+//     const { search, cat_id, status, page, limit } = req.query;
+
+//     if (search) {
+//       const searchLower = search.toLowerCase();
+//       designs = designs.filter(s => 
+//         (s.title && s.title.toLowerCase().includes(searchLower)) ||
+//         (s.title_kh && s.title_kh.toLowerCase().includes(searchLower)) ||
+//         (s.description && s.description.toLowerCase().includes(searchLower))
+//       );
+//     }
+
+//     if (cat_id) {
+//       designs = designs.filter(s => String(s.cat_id) === String(cat_id));
+//     }
+
+//     if (status) {
+//       designs = designs.filter(s => s.status === status);
+//     }
+
+//     designs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+//     const formattedDesigns = designs.map(s => ({
+//       ...s,
+//       created_at: formatBackendDate(s.created_at),
+//       updated_at: formatBackendDate(s.updated_at)
+//     }));
+
+//     const totalItems = formattedDesigns.length;
+
+//     if (page || limit) {
+//       const currentPage = parseInt(page) || 1;
+//       const pageSize = parseInt(limit) || 10;
+//       const startIndex = (currentPage - 1) * pageSize;
+//       const endIndex = startIndex + pageSize;
+
+//       const paginatedData = formattedDesigns.slice(startIndex, endIndex);
+
+//       return res.json({
+//         success: true,
+//         meta: {
+//           total_items: totalItems,
+//           current_page: currentPage,
+//           limit: pageSize,
+//           total_pages: Math.ceil(totalItems / pageSize)
+//         },
+//         data: paginatedData
+//       });
+//     }
+
+//     return res.json({
+//       success: true,
+//       total: totalItems,
+//       data: formattedDesigns
+//     });
+
+//   } catch (err) {
+//     return res.status(500).json({
+//       success: false,
+//       message: "Server error",
+//       error: err.message
+//     });
+//   }
+// };
+
+
+// Helper function to shuffle an array randomly
+const shuffleArray = (array) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
+
 exports.getAllDesign = async (req, res) => {
   try {
     let designs = await readJsonFile(DESIGNS_FILE_PATH, []);
-    const { search, cat_id, status, page, limit } = req.query;
+
+    const { search, cat_id, status, page, limit, random } = req.query;
 
     if (search) {
       const searchLower = search.toLowerCase();
@@ -177,14 +255,19 @@ exports.getAllDesign = async (req, res) => {
     }
 
     if (cat_id) {
-      designs = designs.filter(s => String(s.cat_id) === String(cat_id));
+      const catIdsArray = String(cat_id).split(',').map(id => id.trim());
+      designs = designs.filter(s => catIdsArray.includes(String(s.cat_id)));
     }
 
     if (status) {
       designs = designs.filter(s => s.status === status);
     }
 
-    designs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    if (random === 'true') {
+      designs = shuffleArray(designs);
+    } else {
+      designs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
 
     const formattedDesigns = designs.map(s => ({
       ...s,
@@ -228,6 +311,7 @@ exports.getAllDesign = async (req, res) => {
     });
   }
 };
+
 
 exports.getAllDesignById = async (req, res) => {
   try {

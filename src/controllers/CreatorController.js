@@ -22,16 +22,18 @@ exports.createCreator = async (req, res) => {
     const creatorData = req.body;
     const { title } = creatorData;
 
+    // Process image buffer safely
     let imageName = null;
-    if (req.files?.img?.[0]?.buffer) {
+    if (req.files && req.files.img && req.files.img[0] && req.files.img[0].buffer) {
       const imgFile = req.files.img[0];
       const processed = await compressToTargetSize(imgFile.buffer, imgFile.mimetype);
       imageName = `${Date.now()}${processed.extension}`;
       await uploadBufferFile(`${UPLOADS_DIR}/${imageName}`, processed.buffer, `uploads: creator img ${imageName}`);
     }
 
+    // Process HTML file buffer safely
     let htmlFileName = null;
-    if (req.files?.file?.[0]?.buffer) {
+    if (req.files && req.files.file && req.files.file[0] && req.files.file[0].buffer) {
       const serviceFile = req.files.file[0];
       const fileExt = path.extname(serviceFile.originalname) || ".html";
       htmlFileName = `${Date.now()}${fileExt}`;
@@ -40,35 +42,36 @@ exports.createCreator = async (req, res) => {
 
     const creatorList = await readJsonFile(CREATOR_FILE_PATH, []);
 
+    // Instantiate with the clean modern Object pattern (from previous fix)
     const newCreator = new CreatorModel({
       id: Date.now(),
-      user_id: req.user.id,  
       status: creatorData.status,
       pin: creatorData.pin,
+      user_id: req.user?.id || null,
       cat_id: creatorData.cat_id,
       title: creatorData.title,
       des: creatorData.des,
+      img: imageName,
+      file: htmlFileName,
       tags: creatorData.tags,
-      share_count: creatorData.share_count,
-      view_count: creatorData.view_count,
-      img: imageName,            
-      file: htmlFileName,       
+      share_count: creatorData.share_count || 0,
+      view_count: creatorData.view_count || 0,
       created_at: new Date(),
-      updated_at: new Date()              
+      updated_at: new Date()
     });
 
     creatorList.push(newCreator);
-    await writeJsonFile(CREATOR_FILE_PATH, creatorList, `Services: created ${title || 'New Service'}`);
+    await writeJsonFile(CREATOR_FILE_PATH, creatorList, `Creator: created ${title || 'New Service'}`);
 
     return res.status(201).json({ 
       success: true,
-      message: "បង្កើត Services បានជោគជ័យ", 
+      message: "បង្កើត Creator បានជោគជ័យ", 
       data: newCreator 
     });
 
   } catch (err) {
     return res.status(500).json({ 
-      success: false,
+      success: false, 
       message: "Server error", 
       error: err.message 
     });
@@ -81,7 +84,8 @@ exports.updateCreator = async (req, res) => {
     const creatorData = req.body;
 
     const creatorList = await readJsonFile(CREATOR_FILE_PATH, []);
-    const creatorIndex = creatorList.findIndex(s => s.id === parseInt(id) || s.id === id);
+
+    const creatorIndex = creatorList.findIndex(s => String(s.id) === String(id));
 
     if (creatorIndex === -1) {
       return res.status(404).json({ success: false, message: "រកមិនឃើញមាតិការដែលត្រូវកែប្រែឡើយ!" });
@@ -90,7 +94,7 @@ exports.updateCreator = async (req, res) => {
     const oldCreator = creatorList[creatorIndex];
 
     let imageName = oldCreator.img;
-    if (req.files?.img?.[0]?.buffer) {
+    if (req.files && req.files.img && req.files.img[0] && req.files.img[0].buffer) {
       const imgFile = req.files.img[0];
       const processed = await compressToTargetSize(imgFile.buffer, imgFile.mimetype);
       imageName = `${Date.now()}${processed.extension}`;
@@ -107,7 +111,7 @@ exports.updateCreator = async (req, res) => {
     }
 
     let htmlFileName = oldCreator.file;
-    if (req.files?.file?.[0]?.buffer) {
+    if (req.files && req.files.file && req.files.file[0] && req.files.file[0].buffer) {
       const serviceFile = req.files.file[0];
       const fileExt = path.extname(serviceFile.originalname) || ".html";
       htmlFileName = `${Date.now()}${fileExt}`;
@@ -124,7 +128,7 @@ exports.updateCreator = async (req, res) => {
     }
 
     const updatedService = {
-      ...oldCreator,       
+      ...oldCreator,      
       ...creatorData,      
       img: imageName,      
       file: htmlFileName, 
@@ -153,7 +157,9 @@ exports.deleteCreator = async (req, res) => {
   try {
     const { id } = req.params;
     const creatorList = await readJsonFile(CREATOR_FILE_PATH, []);
-    const creatorToDelete = creatorList.find(s => s.id === parseInt(id) || s.id === id);
+    
+    // String safe element search
+    const creatorToDelete = creatorList.find(s => String(s.id) === String(id));
 
     if (!creatorToDelete) {
       return res.status(404).json({ success: false, message: "រកមិនឃើញសេវាកម្មដែលត្រូវលុបឡើយ!" });
@@ -175,7 +181,7 @@ exports.deleteCreator = async (req, res) => {
       }
     }
 
-    const filteredCreator = creatorList.filter(s => s.id !== creatorToDelete.id);
+    const filteredCreator = creatorList.filter(s => String(s.id) !== String(creatorToDelete.id));
     await writeJsonFile(CREATOR_FILE_PATH, filteredCreator, `Services: deleted service with ID ${id}`);
 
     return res.status(200).json({

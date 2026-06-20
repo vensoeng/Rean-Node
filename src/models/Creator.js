@@ -1,5 +1,5 @@
 class Creator {
-  constructor(
+  constructor({
     id,
     status,
     pin,
@@ -14,7 +14,7 @@ class Creator {
     view_count,
     created_at = new Date(),
     updated_at = new Date()
-  ) {
+  }) {
     this.id = id;
     this.status = status;
     this.pin = pin;

@@ -1,6 +1,6 @@
 const sharp = require("sharp");
 
-const TARGET_BYTES = 130 * 1024;
+const TARGET_BYTES = 86 * 1024;
 
 exports.compressToTargetSize = async (inputBuffer, mimeType) => {
   const metadata = await sharp(inputBuffer).metadata();

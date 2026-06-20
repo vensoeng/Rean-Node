@@ -32,15 +32,18 @@ exports.createPlaylist = async (req, res) => {
 
     const creatorList = await readJsonFile(PLAYLIST_FILE_PATH, []);
 
-    const newCreator = new PlayListModel({
-      id: Date.now(),
-      status: creatorData.status,
-      title: creatorData.title,
-      des: creatorData.des,
-      img: imageName,               
-      created_at: new Date(),
-      updated_at: new Date()              
-    });
+    const maxId = creatorList.reduce((max, item) => (item.id > max ? item.id : max), 0);
+    const newShortId = maxId + 1;
+
+  const newCreator = new PlayListModel(
+    newShortId,
+    creatorData.status,
+    creatorData.title,
+    creatorData.des,
+    imageName,
+    new Date(),
+    new Date()
+  );
 
     creatorList.push(newCreator);
     await writeJsonFile(PLAYLIST_FILE_PATH, creatorList, `Playlist: created ${title || 'New playlist'}`);
@@ -63,18 +66,18 @@ exports.createPlaylist = async (req, res) => {
 exports.updatePlaylist = async (req, res) => {
   try {
     const { id } = req.params;
-    const creatorData = req.body;
+    const playlistData = req.body;
 
-    const creatorList = await readJsonFile(PLAYLIST_FILE_PATH, []);
-    const creatorIndex = creatorList.findIndex(s => s.id === parseInt(id) || s.id === id);
+    const playListList = await readJsonFile(PLAYLIST_FILE_PATH, []);
+    const playlistIndex = playListList.findIndex(s => s.id === parseInt(id) || s.id === id);
 
-    if (creatorIndex === -1) {
+    if (playlistIndex === -1) {
       return res.status(404).json({ success: false, message: "រកមិនឃើញមាតិការដែលត្រូវកែប្រែឡើយ!" });
     }
 
-    const oldCreator = creatorList[creatorIndex];
+    const oldPlaylist = playListList[playlistIndex];
 
-    let imageName = oldCreator.img;
+    let imageName = oldPlaylist.img;
     if (req.files?.img?.[0]?.buffer) {
       const imgFile = req.files.img[0];
       const processed = await compressToTargetSize(imgFile.buffer, imgFile.mimetype);
@@ -82,9 +85,9 @@ exports.updatePlaylist = async (req, res) => {
       
       await uploadBufferFile(`${UPLOADS_DIR}/${imageName}`, processed.buffer, `uploads: updated img ${imageName}`);
 
-      if (oldCreator.img) {
+      if (oldPlaylist.img) {
         try {
-          await deleteFile(`${UPLOADS_DIR}/${oldCreator.img}`, `uploads: deleted old img ${oldCreator.img}`);
+          await deleteFile(`${UPLOADS_DIR}/${oldPlaylist.img}`, `uploads: deleted old img ${oldPlaylist.img}`);
         } catch (e) {
           console.log("Error deleting old image:", e.message);
         }
@@ -92,14 +95,14 @@ exports.updatePlaylist = async (req, res) => {
     }
 
     const updatedService = {
-      ...oldCreator,       
-      ...creatorData,      
+      ...oldPlaylist,       
+      ...playlistData,      
       img: imageName,      
       updated_at: new Date()
     };
 
-    creatorList[creatorIndex] = updatedService;
-    await writeJsonFile(PLAYLIST_FILE_PATH, creatorList, `Services: updated ${updatedService.title || id}`);
+    playListList[playlistIndex] = updatedService;
+    await writeJsonFile(PLAYLIST_FILE_PATH, playListList, `Services: updated ${updatedService.title || id}`);
 
     return res.status(200).json({
       success: true,
@@ -120,29 +123,33 @@ exports.deletePlaylist = async (req, res) => {
   try {
     const { id } = req.params;
     const creatorList = await readJsonFile(PLAYLIST_FILE_PATH, []);
-    const creatorToDelete = creatorList.find(s => s.id === parseInt(id) || s.id === id);
+    
+    const creatorIndex = creatorList.findIndex(s => String(s.id) === String(id));
 
-    if (!creatorToDelete) {
+    if (creatorIndex === -1) {
       return res.status(404).json({ success: false, message: "រកមិនឃើញplaylistដែលត្រូវលុបឡើយ!" });
     }
 
-    if (creatorToDelete.img) {
+    const targetCreator = creatorList[creatorIndex];
+
+    if (targetCreator.img) {
       try {
-        await deleteFile(`${UPLOADS_DIR}/${creatorToDelete.img}`, `upload: deleted img due to playlist deletion ${creatorToDelete.img}`);
+        await deleteFile(`${UPLOADS_DIR}/${targetCreator.img}`, `upload: deleted img due to playlist deletion ${targetCreator.img}`);
       } catch (e) {
         console.log("Image not found on GitHub storage, skipping delete:", e.message);
       }
     }
 
-    if (creatorToDelete.file) {
+    if (targetCreator.file) {
       try {
-        await deleteFile(`${UPLOADS_DIR}/${creatorToDelete.file}`, `uploads: deleted file due to playlist deletion ${creatorToDelete.file}`);
+        await deleteFile(`${UPLOADS_DIR}/${targetCreator.file}`, `uploads: deleted file due to playlist deletion ${targetCreator.file}`);
       } catch (e) {
         console.log("File not found on GitHub storage, skipping delete:", e.message);
       }
     }
 
-    const filteredCreator = creatorList.filter(s => s.id !== creatorToDelete.id);
+    const filteredCreator = creatorList.filter(s => String(s.id) !== String(id));
+    
     await writeJsonFile(PLAYLIST_FILE_PATH, filteredCreator, `playlists: deleted playlist with ID ${id}`);
 
     return res.status(200).json({

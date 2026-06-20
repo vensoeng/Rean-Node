@@ -2,7 +2,7 @@ const Joi = require("joi");
 
 const createCreatorSchema = Joi.object({
   status: Joi.boolean().empty("").default(false),
-  pin_num: Joi.number().integer().valid(0, 1).empty("").default(0),
+  pin: Joi.number().integer().valid(0, 1).empty("").default(0),
   user_id: Joi.number().integer().min(1).empty("").optional(),
   cat_id: Joi.number().integer().min(1).required().messages({
     "number.base": "Category ID ត្រូវតែជាលេខ",

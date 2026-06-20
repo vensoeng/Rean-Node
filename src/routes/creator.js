@@ -7,13 +7,14 @@ const { validateCreator } = require("../validators/creatorValidator");
 
 const cpUpload = uploadMiddleware.fields([
   { name: 'img', maxCount: 1 },
+  { name: 'file', maxCount: 1 }
 ]);
 
 router.get("/", creatorController.getAllCreator);
 router.get("/:id", creatorController.getAllCreatorById);
 //action
 router.post("/", authMiddleware, cpUpload, validateCreator, creatorController.createCreator);
-router.put("/:id", authMiddleware, cpUpload, validateCreator, creatorController.updateCcreateCreator);
-router.delete("/:id", authMiddleware, creatorController.deleteCcreateCreator);
+router.put("/:id", authMiddleware, cpUpload, validateCreator, creatorController.updateCreator);
+router.delete("/:id", authMiddleware, creatorController.deleteCreator);
 
 module.exports = router;

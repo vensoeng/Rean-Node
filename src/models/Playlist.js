@@ -1,13 +1,5 @@
 class PlayList {
-  constructor(
-    id,
-    status,
-    title,
-    des,
-    img,
-    created_at = new Date(),
-    updated_at = new Date()
-  ) {
+  constructor(id, status, title, des, img, created_at, updated_at) {
     this.id = id;
     this.status = status;
     this.title = title;
