@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const creatorController = require("../controllers/creatorController");
+const creatorController = require("../controllers/creatorsController");
 const authMiddleware = require("../middlewares/authMiddleware");
 const uploadMiddleware = require("../middlewares/uploadMiddleware");
 
