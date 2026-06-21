@@ -32,15 +32,15 @@ exports.createCategory = async (req, res) => {
 
     const creatorList = await readJsonFile(CATEGORY_FILE_PATH, []);
 
-    const newCreator = new CategoryModel({
+    const newCreator = {
       id: Date.now(),
-      status: creatorData.status,
-      title: creatorData.title,
-      des: creatorData.des,
-      img: imageName,               
-      created_at: new Date(),
-      updated_at: new Date()              
-    });
+      status: creatorData.status || "true",
+      title: creatorData.title || "",
+      des: creatorData.des || "",
+      img: imageName,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
 
     creatorList.push(newCreator);
     await writeJsonFile(CATEGORY_FILE_PATH, creatorList, `Playlist: created ${title || 'New playlist'}`);

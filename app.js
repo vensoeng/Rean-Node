@@ -54,13 +54,15 @@ app.use("/auth", require('./src/routes/auth'));
 app.use("/blogs", require('./src/routes/blog'));
 app.use("/services", require('./src/routes/service'));
 app.use("/designs", require('./src/routes/designs'));
+//for 
 app.use("/images", require('./src/routes/images'));
 app.use("/storage", require('./src/routes/storage'));
 // content
 app.use("/playlists", require('./src/routes/playlist'));
 app.use("/creators", require('./src/routes/creator'));
 //shop
-app.use("/categorys", require('./src/routes/creator'));
+app.use("/categorys", require('./src/routes/category'));
+app.use("/products", require('./src/routes/product'));
 
 // app.use("/items", require('./src/routes/item'));
 // នៅក្នុង server.js ឬ app.js របស់អ្នក

@@ -3,7 +3,7 @@ const category = require("../controllers/categoryController");
 const authMiddleware = require("../middlewares/authMiddleware");
 const uploadMiddleware = require("../middlewares/uploadMiddleware");
 
-const { validateCategory } = require("../validators/CategoryValidator");
+const { validateCategory } = require("../validators/categoryValidator");
 
 const cpUpload = uploadMiddleware.fields([
   { name: 'img', maxCount: 1 },

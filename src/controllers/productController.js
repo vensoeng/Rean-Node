@@ -40,28 +40,28 @@ exports.createProduct = async (req, res) => {
 
     const productList = await readJsonFile(PRODUCT_FILE_PATH, []);
 
-    const newProduct = new ProductModel({
+    const newProduct = {
       id: Date.now(),
-      pin: productData.pin,
-      status: productData.status,
-      user_id: req.user.id, 
-      cat_id: productData.id, 
-      name: productData.name, 
-      des: productData.des,
-      detail: productData.detail,
-      price: productData.price,
-      stock: productData.stock,
-      pesent: productData.pesent,
-      note: productData.note,
-      tags: productData.tags,
-      share_count: productData.share_count,
-      view_count: productData.view_count,
-      list_img: productData.list_img,
+      pin: productData.pin || "0",
+      status: productData.status === "true" || productData.status === true,
+      user_id: req.user?.id || null, 
+      cat_id: Number(productData.cat_id) || 1, 
+      name: productData.name || "", 
+      des: productData.des || "",
+      detail: productData.detail || "",
+      price: productData.price || "0",
+      stock: productData.stock || "0",
+      pesent: productData.pesent || "",
+      note: productData.note || "",
+      tags: productData.tags || "",
+      share_count: productData.share_count || 0,
+      view_count: productData.view_count || 0,
+      list_img: productData.list_img || '',
       img: imageName,            
       file: htmlFileName,       
-      created_at: new Date(),
-      updated_at: new Date()              
-    });
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()              
+    };
 
     productList.push(newProduct);
     await writeJsonFile(PRODUCT_FILE_PATH, productList, `Products: created ${title || 'New Product'}`);
@@ -69,7 +69,7 @@ exports.createProduct = async (req, res) => {
     return res.status(201).json({ 
       success: true,
       message: "បង្កើត Product បានជោគជ័យ", 
-      data: newCreator 
+      data: newProduct
     });
 
   } catch (err) {
@@ -129,21 +129,21 @@ exports.updateProduct = async (req, res) => {
       }
     }
 
-    const updatedService = {
+    const updatedProduct = {
       ...oldProduct,       
       ...productData,      
       img: imageName,      
       file: htmlFileName, 
-      updated_at: new Date()
+      updated_at: new Date().toISOString()
     };
 
-    productList[creatorIndex] = updatedService;
-    await writeJsonFile(PRODUCT_FILE_PATH, productList, `Product: updated ${updatedService.title || id}`);
+    productList[productIndex] = updatedProduct; 
+    await writeJsonFile(PRODUCT_FILE_PATH, productList, `Product: updated ${updatedProduct.title || id}`);
 
     return res.status(200).json({
       success: true,
       message: "ធ្វើបច្ចុប្បន្នភាពProductបានជោគជ័យ",
-      data: updatedService
+      data: updatedProduct
     });
 
   } catch (err) {
@@ -206,9 +206,8 @@ exports.getAllProduct = async (req, res) => {
       if (search) {
         const searchLower = search.toLowerCase();
         product = product.filter(s => 
-          (s.title && s.title.toLowerCase().includes(searchLower)) ||
-          (s.title_kh && s.title_kh.toLowerCase().includes(searchLower)) ||
-          (s.description && s.description.toLowerCase().includes(searchLower))
+          (s.name && s.name.toLowerCase().includes(searchLower)) ||
+          (s.des && s.des.toLowerCase().includes(searchLower))
         );
       }
   
@@ -217,7 +216,7 @@ exports.getAllProduct = async (req, res) => {
       }
   
       if (status) {
-        product = product.filter(s => s.status === status);
+        product = product.filter(s => String(s.status) === String(status));
       }
   
       product.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -269,9 +268,9 @@ exports.getAllProductById = async (req, res) => {
   try {
     const { id } = req.params;
     const products = await readJsonFile(PRODUCT_FILE_PATH, []);
-    const creator = products.find(s => String(s.id) === String(id));
+    const product = products.find(s => String(s.id) === String(id)); 
 
-    if (!product) {
+    if (!product) { 
       return res.status(404).json({ success: false, message: "រកមិនឃើញProductនេះឡើយ" });
     }
     
