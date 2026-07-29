@@ -10,12 +10,13 @@ const path = require('path');
 const app = express();
 
 const allowedOrigins = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
+    // 'http://localhost:3000',
+    // 'http://127.0.0.1:3000',
+    // 'http://localhost:5173',
+    // 'http://127.0.0.1:5173',
     'https://vensoeng.vercel.app',
     'https://vensoeng.free.nf',
+    'https://vensoeng.github.io',
     process.env.FRONTEND_URL
 ].filter(Boolean);
 
@@ -63,7 +64,7 @@ app.use("/creators", require('./src/routes/creator'));
 //shop
 app.use("/categorys", require('./src/routes/category'));
 app.use("/products", require('./src/routes/product'));
-
+app.use("/booking", require('./src/routes/booking'));
 // app.use("/items", require('./src/routes/item'));
 // នៅក្នុង server.js ឬ app.js របស់អ្នក
 
