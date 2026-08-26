@@ -245,30 +245,36 @@ exports.getAllDesign = async (req, res) => {
 
     const { search, cat_id, status, page, limit, random } = req.query;
 
+    // 1. Search filter (handles both 'description' and 'des')
     if (search) {
       const searchLower = search.toLowerCase();
       designs = designs.filter(s => 
         (s.title && s.title.toLowerCase().includes(searchLower)) ||
         (s.title_kh && s.title_kh.toLowerCase().includes(searchLower)) ||
+        (s.des && s.des.toLowerCase().includes(searchLower)) ||
         (s.description && s.description.toLowerCase().includes(searchLower))
       );
     }
 
+    // 2. Category filter
     if (cat_id) {
       const catIdsArray = String(cat_id).split(',').map(id => id.trim());
       designs = designs.filter(s => catIdsArray.includes(String(s.cat_id)));
     }
 
-    if (status) {
-      designs = designs.filter(s => s.status === status);
+    // 3. Status filter (safely converts boolean or string status to string)
+    if (status !== undefined) {
+      designs = designs.filter(s => String(s.status) === String(status));
     }
 
+    // 4. Sorting / Randomizing
     if (random === 'true') {
       designs = shuffleArray(designs);
     } else {
       designs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
 
+    // 5. Formatting dates
     const formattedDesigns = designs.map(s => ({
       ...s,
       created_at: formatBackendDate(s.created_at),
@@ -277,6 +283,7 @@ exports.getAllDesign = async (req, res) => {
 
     const totalItems = formattedDesigns.length;
 
+    // 6. Pagination
     if (page || limit) {
       const currentPage = parseInt(page) || 1;
       const pageSize = parseInt(limit) || 10;
@@ -311,7 +318,6 @@ exports.getAllDesign = async (req, res) => {
     });
   }
 };
-
 
 exports.getAllDesignById = async (req, res) => {
   try {
