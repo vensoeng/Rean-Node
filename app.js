@@ -65,6 +65,9 @@ app.use("/creators", require('./src/routes/creator'));
 app.use("/categorys", require('./src/routes/category'));
 app.use("/products", require('./src/routes/product'));
 app.use("/booking", require('./src/routes/booking'));
+// project demo
+app.use("/projects", require('./src/routes/project'));
+
 // app.use("/items", require('./src/routes/item'));
 // នៅក្នុង server.js ឬ app.js របស់អ្នក
 
